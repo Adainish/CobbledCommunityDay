@@ -12,12 +12,11 @@ import io.github.adainish.cobbledcommunityday.storage.CommunityDayStorage;
 import io.github.adainish.cobbledcommunityday.util.DiscordEmbedBuilder;
 import io.github.adainish.cobbledcommunityday.util.RandomHelper;
 import io.github.adainish.cobbledcommunityday.util.Util;
+import net.dv8tion.jda.api.entities.channel.Channel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import org.apache.commons.lang3.time.DateUtils;
-import org.javacord.api.entity.channel.Channel;
-import org.javacord.api.entity.channel.TextChannel;
-import org.javacord.api.entity.emoji.CustomEmoji;
-import org.javacord.api.entity.emoji.KnownCustomEmoji;
-import org.javacord.api.entity.server.Server;
 
 import java.util.*;
 
@@ -57,16 +56,14 @@ public class CommunityDayWrapper
     }
 
     public void wipeNonActiveEmotes() {
-        Channel channel = CobbledCommunityDay.bot.api.getChannelById(CobbledCommunityDay.config.channelID).orElse(null);
+        TextChannel channel = CobbledCommunityDay.bot.api.getTextChannelById(CobbledCommunityDay.config.channelID);
         if (channel == null)
             return;
 
         try {
-            if (channel.asServerChannel().isPresent()) {
-                Server server = channel.asServerChannel().get().getServer();
-                if (server.getCustomEmojis().isEmpty())
+                if (channel.getJDA().getEmojis().isEmpty())
                     return;
-                for (KnownCustomEmoji emoji : server.getCustomEmojis()) {
+                for (RichCustomEmoji emoji : channel.getJDA().getEmojis()) {
                     if (emoji == null)
                         continue;
                     if (!emoji.getName().contains("communityday_"))
@@ -74,7 +71,6 @@ public class CommunityDayWrapper
                     if (!isValidEmoji(emoji.getName())) {
                         emoji.delete();
                     }
-                }
             }
         } catch (NullPointerException e)
         {
@@ -258,8 +254,8 @@ public class CommunityDayWrapper
             this.daysUntil = System.currentTimeMillis() + (daysUntil() * Util.DAY_IN_MILLIS);
             this.waitingDays = System.currentTimeMillis() + (waitingDays() * Util.DAY_IN_MILLIS);
             TextChannel channel = null;
-            if (CobbledCommunityDay.bot.api.getTextChannelById(channelID).isPresent())
-                channel = CobbledCommunityDay.bot.api.getTextChannelById(channelID).get();
+            if (CobbledCommunityDay.bot.api.getTextChannelById(channelID) != null)
+                channel = CobbledCommunityDay.bot.api.getTextChannelById(channelID);
             if (channel == null)
                 return;
             for (CommunityPokemon p:possibleCommunityPokemon) {
@@ -275,7 +271,7 @@ public class CommunityDayWrapper
                 DiscordEmbedBuilder.sendPokemonEmbedToChannel(channelID, "Community Day Option", p.getPokemonName(), p);
                 if (getCustomEmoji(p.getEmojiName()) != null) {
                     CustomEmoji emoji = getCustomEmoji(p.getEmojiName());
-                    channel.getMessagesAsStream().findFirst().get().addReaction(emoji);
+                    channel.addReactionById(channel.getLatestMessageId(), emoji);
                 }
             }
         } catch (Exception e)
@@ -285,8 +281,8 @@ public class CommunityDayWrapper
 
     }
 
-    public KnownCustomEmoji getCustomEmoji(String name) {
-        for (KnownCustomEmoji customEmoji:CobbledCommunityDay.bot.api.getCustomEmojis()) {
+    public CustomEmoji getCustomEmoji(String name) {
+        for (RichCustomEmoji customEmoji:CobbledCommunityDay.bot.api.getEmojis()) {
             if (customEmoji.getName().equalsIgnoreCase(name))
                 return customEmoji;
         }

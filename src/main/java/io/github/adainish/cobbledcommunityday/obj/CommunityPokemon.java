@@ -4,13 +4,23 @@ import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import io.github.adainish.cobbledcommunityday.CobbledCommunityDay;
+import io.github.adainish.cobbledcommunityday.storage.EmojiStorage;
+import net.dv8tion.jda.api.entities.Icon;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
+import net.dv8tion.jda.api.managers.CustomEmojiManager;
+import net.dv8tion.jda.api.requests.restaction.AuditableRestAction;
+import net.dv8tion.jda.internal.entities.emoji.RichCustomEmojiImpl;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Level;
-import org.javacord.api.entity.channel.Channel;
-import org.javacord.api.entity.emoji.CustomEmojiBuilder;
-import org.javacord.api.entity.server.Server;
-
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 public class CommunityPokemon
 {
@@ -34,13 +44,10 @@ public class CommunityPokemon
     }
 
     public void scrapeCustomEmote() {
-        Channel channel = CobbledCommunityDay.bot.api.getChannelById(CobbledCommunityDay.config.channelID).orElse(null);
+        TextChannel channel = CobbledCommunityDay.bot.api.getTextChannelById(CobbledCommunityDay.config.channelID);
         if (channel == null)
             return;
 
-        if (channel.asServerChannel().isPresent()) {
-            Server server = channel.asServerChannel().get().getServer();
-            CustomEmojiBuilder builder = new CustomEmojiBuilder(server);
             String link;
             Pokemon pokemon = getPokemon();
             if (pokemon.getShiny()) {
@@ -60,15 +67,34 @@ public class CommunityPokemon
                 }
             }
             try {
-                builder.setImage(url);
             } catch (Exception e) {
                 CobbledCommunityDay.getLog().log(Level.WARN, e);
             }
 
-            builder.setName(name);
-            builder.setAuditLogReason("Community day Emoji");
-            builder.create().join();
-            setEmojiName(name);
+        try {
+            FileUtils.copyURLToFile(
+                    url,
+                    new File(CobbledCommunityDay.getEmojiStorage(), pokemon.getSpecies().getName().toLowerCase() + ".gif"),
+                    100,
+                    100);
+
+        } catch (Exception e) {
+
+        }
+
+
+        try {
+            File f = EmojiStorage.getEmojiFile(pokemon.getSpecies().getName().toLowerCase());
+            if (f.exists()) {
+                Icon icon = Icon.from(f);
+               AuditableRestAction<RichCustomEmoji> restAction = channel.getGuild().createEmoji(name, icon, (Role) channel.getJDA().getRoles());
+               restAction.reason("Community Day emoji scraping");
+               restAction.submit();
+            } else {
+                CobbledCommunityDay.getLog().error("Failed to retrieve emoji for %species%".replace("%species%", pokemon.getSpecies().getName()));
+            }
+        } catch (Exception e) {
+
         }
     }
 

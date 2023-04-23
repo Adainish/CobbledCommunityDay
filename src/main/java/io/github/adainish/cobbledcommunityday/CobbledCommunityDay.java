@@ -41,6 +41,8 @@ public class CobbledCommunityDay {
     private static File configDir;
     private static File storage;
 
+    private static File emojiStorage;
+
     public static Config config;
 
     public static String token;
@@ -86,6 +88,14 @@ public class CobbledCommunityDay {
         CobbledCommunityDay.storage = storage;
     }
 
+    public static File getEmojiStorage() {
+        return emojiStorage;
+    }
+
+    public static void setEmojiStorage(File emojiStorage) {
+        CobbledCommunityDay.emojiStorage = emojiStorage;
+    }
+
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         log.info("Booting up %n by %authors %v %y"
@@ -101,6 +111,7 @@ public class CobbledCommunityDay {
     @SubscribeEvent
     public void onServerStarted(ServerStartedEvent event) {
         server = ServerLifecycleHooks.getCurrentServer();
+        initConfigs();
         if (loginBot()) {
             setOrCreateCommunityDay();
             //register spawn listener
@@ -181,6 +192,8 @@ public class CobbledCommunityDay {
         getConfigDir().mkdir();
         setStorage(new File(getConfigDir(), "/storage/"));
         getStorage().mkdirs();
+        setEmojiStorage(new File(getConfigDir(), "/emojistorage/"));
+        getEmojiStorage().mkdirs();
     }
 
     public void initConfigs() {

@@ -66,7 +66,7 @@ public class Config
         File dir = CobbledCommunityDay.getConfigDir();
         dir.mkdirs();
         Gson gson  = Adapters.PRETTY_MAIN_GSON;
-        File file = new File(dir, "rewards.json");
+        File file = new File(dir, "config.json");
         JsonReader reader = null;
         try {
             reader = new JsonReader(new FileReader(file));

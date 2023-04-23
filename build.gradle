@@ -140,7 +140,10 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft 'net.minecraftforge:forge:1.19.2-43.2.8'
     implementation fileTree(dir: 'libs', include: '*.jar')
-    shadow group: 'org.javacord', name: 'javacord', version:'3.4.0'
+    implementation("net.dv8tion:JDA:5.0.0-beta.8") {
+        exclude module: 'opus-java'
+    }
+    shadow group: 'net.dv8tion', name: 'JDA', version:'5.0.0-beta.8'
     // Real mod deobf dependency examples - these get remapped to your current mappings
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api") // Adds JEI API as a compile dependency
     // runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}") // Adds the full JEI mod as a runtime dependency
@@ -180,6 +183,19 @@ configurations {
 }
 shadowJar {
     configurations = [project.configurations.shadow]
+
+    exclude 'org/intellij/**'
+    exclude 'org/slf4j/**'
+    exclude 'org/jetbrains/**'
+    exclude 'com/sun/**'
+//    exclude 'com/**'
+//    exclude 'natives/**'
+//    exclude 'gnu/**'
+//    exclude 'club/**'
+//    exclude 'okio/**'
+//    exclude 'tomp2p/**'
+    exclude 'kotlin/**'
+
     dependsOn('reobfJar')
     archiveName = rootProject.name + "-" + rootProject.version + "-shade.jar"
 }

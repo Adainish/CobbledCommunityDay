@@ -3,15 +3,15 @@ package io.github.adainish.cobbledcommunityday.util;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import io.github.adainish.cobbledcommunityday.CobbledCommunityDay;
 import io.github.adainish.cobbledcommunityday.obj.CommunityPokemon;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.apache.logging.log4j.Level;
-import org.javacord.api.entity.channel.TextChannel;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
 
 import java.awt.*;
 public class DiscordEmbedBuilder
 {
     public static void sendPokemonEmbedToChannel(String channelID, String title, String msg, CommunityPokemon pokemon) {
-        TextChannel channel = CobbledCommunityDay.bot.api.getTextChannelById(channelID).orElse(null);
+        TextChannel channel = CobbledCommunityDay.bot.api.getTextChannelById(channelID);
 
         if (channel == null) {
             CobbledCommunityDay.getLog().log(Level.WARN,"A channel returned as non existent while attempting to send out a message");
@@ -21,12 +21,12 @@ public class DiscordEmbedBuilder
         EmbedBuilder embed = generatePokemonEmbed(pokemon.getPokemon());
         embed.setTitle(title);
         embed.setDescription(msg);
-        channel.sendMessage(embed);
+        channel.sendMessageEmbeds(embed.build());
     }
 
 
     public static void sendAnnouncementMessageToChannel(String channelID, String title, String msg) {
-        TextChannel channel = CobbledCommunityDay.bot.api.getTextChannelById(channelID).orElse(null);
+        TextChannel channel = CobbledCommunityDay.bot.api.getTextChannelById(channelID);
 
         if (channel == null) {
             CobbledCommunityDay.getLog().log(Level.WARN, "A channel returned as non existent while attempting to send out a message");
@@ -36,11 +36,11 @@ public class DiscordEmbedBuilder
         embed.setTitle(title);
         embed.setDescription(msg);
         embed.setColor(Color.RED);
-        channel.sendMessage("@everyone", embed);
+        channel.sendMessageEmbeds(embed.build());
     }
 
     public static void sendBotMessageToChannel(String channelID, String title, String msg) {
-        TextChannel channel = CobbledCommunityDay.bot.api.getTextChannelById(channelID).orElse(null);
+        TextChannel channel = CobbledCommunityDay.bot.api.getTextChannelById(channelID);
 
         if (channel == null) {
             CobbledCommunityDay.getLog().log(Level.WARN, "A channel returned as non existent while attempting to send out a message");
@@ -51,7 +51,7 @@ public class DiscordEmbedBuilder
         embed.setTitle(title);
         embed.setDescription(msg);
         embed.setColor(Color.RED);
-        channel.sendMessage(embed);
+        channel.sendMessageEmbeds(embed.build());
     }
 
     public static EmbedBuilder generatePokemonEmbed(Pokemon pokemon) {
