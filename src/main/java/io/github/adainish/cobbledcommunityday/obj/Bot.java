@@ -2,16 +2,15 @@ package io.github.adainish.cobbledcommunityday.obj;
 
 import io.github.adainish.cobbledcommunityday.CobbledCommunityDay;
 import io.github.adainish.cobbledcommunityday.util.ReactionListener;
-import io.github.adainish.cobbledcommunityday.util.Util;
-import io.github.adainish.cobbledcommunityday.wrapper.CommunityDayWrapper;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.requests.GatewayIntent;
-import org.apache.logging.log4j.Level;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.Event;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Bot
@@ -20,46 +19,41 @@ public class Bot
 
     public Bot() {}
 
-    public JDA api;
+    public JDA jda;
 
     public void logoutBot() {
-        if (api == null)
+        if (jda == null)
             return;
-        List<Object> list = new ArrayList<>();
-        api.getRegisteredListeners().forEach(listener -> {
-            list.add(listener);
-        });
+        List<Object> list = new ArrayList<>(jda.getRegisteredListeners());
         list.forEach(listener -> {
-            api.removeEventListener(listener);
+            jda.removeEventListener(listener);
         });
-        api.shutdown();
+        jda.shutdown();
+    }
+
+    public Guild getDesiredChannelGuild()
+    {
+        return CobbledCommunityDay.bot.jda.getGuildById(CobbledCommunityDay.config.guildID);
     }
 
     public void loginBot(String args) throws Exception {
         if (args.isEmpty())
             return;
         try {
-            this.api = JDABuilder.createDefault(args)
-                    .setToken(args)
-                    .enableIntents(Arrays.stream(GatewayIntent.values()).toList())
-                    .build();
+
+            JDABuilder jdaBuilder = JDABuilder.createDefault(args);
+            jdaBuilder.setStatus(OnlineStatus.ONLINE);
+            jdaBuilder.addEventListeners(new ReactionListener());
+
+            this.jda = jdaBuilder.build();
+            jda.awaitReady();
+
         } catch (Exception e) {
             CobbledCommunityDay.getLog().error(e.getMessage());
             throw new Exception("Failed to log in");
         }
-        if (this.api != null) {
-            CobbledCommunityDay.getLog().log(Level.WARN,"Community Day Bot has launched successfully!");
-            // Print the invite url of your bot
-            CobbledCommunityDay.getLog().log(Level.WARN,"You can invite the bot by using the following url: " + generateInvite(api));
-            initVotingListener(this.api);
-        }
+
     }
-
-    public void initVotingListener(JDA api) {
-        api.addEventListener(new ReactionListener());
-    }
-
-
 
     public String generateInvite(JDA api) {
         return api.getInviteUrl(Permission.ADMINISTRATOR);

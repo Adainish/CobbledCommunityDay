@@ -3,16 +3,35 @@ package io.github.adainish.cobbledcommunityday.util;
 import io.github.adainish.cobbledcommunityday.CobbledCommunityDay;
 import io.github.adainish.cobbledcommunityday.obj.CommunityPokemon;
 import io.github.adainish.cobbledcommunityday.obj.DiscordAccount;
+import io.github.adainish.cobbledcommunityday.subscriptions.EventSubscriptions;
 import io.github.adainish.cobbledcommunityday.wrapper.CommunityDayWrapper;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.apache.logging.log4j.Level;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 
 public class ReactionListener extends ListenerAdapter
 {
 
+    @Override
+    public void onReady(@NotNull ReadyEvent event)
+    {
+
+        CobbledCommunityDay.getLog().warn("Bot is ready!");
+//        CobbledCommunityDay.bot.api = event.getJDA();
+        CobbledCommunityDay.instance.setOrCreateCommunityDay();
+        //register spawn listener
+        CobbledCommunityDay.subscriptions = new EventSubscriptions();
+        CobbledCommunityDay.instance.startTasks();
+        CobbledCommunityDay.getLog().log(Level.WARN,"Community Day Bot has launched successfully!");
+        // Print the invite url of your bot
+        CobbledCommunityDay.getLog().log(Level.WARN,"You can invite the bot by using the following url: " + CobbledCommunityDay.bot.generateInvite(event.getJDA()));
+
+    }
 
     @Override
     public void onMessageReactionAdd(@Nonnull MessageReactionAddEvent event) {

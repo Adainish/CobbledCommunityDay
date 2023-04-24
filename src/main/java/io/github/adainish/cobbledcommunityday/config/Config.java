@@ -1,5 +1,7 @@
 package io.github.adainish.cobbledcommunityday.config;
 
+import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
+import com.cobblemon.mod.common.pokemon.Species;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.github.adainish.cobbledcommunityday.CobbledCommunityDay;
@@ -11,6 +13,7 @@ import java.util.List;
 
 public class Config
 {
+    public String guildID;
     public String botToken;
     public String channelID;
     public String broadCast;
@@ -28,6 +31,7 @@ public class Config
     {
         this.botToken = "";
         this.channelID = "";
+        this.guildID = "";
         this.daysUntil = 1;
         this.votingTime = 2;
         this.shinyRate = 10;
@@ -37,6 +41,12 @@ public class Config
         this.waitingTime = 3;
         this.maxPokemon = 5;
         this.blackListedSpecies = new ArrayList<>();
+        for (Species sp: PokemonSpecies.INSTANCE.getImplemented()) {
+            if (sp.create(1).isLegendary() || sp.create(1).isUltraBeast())
+            {
+                blackListedSpecies.add(sp.getName());
+            }
+        }
         this.broadCast = "&b&lToday is Community Day! The Pokemon %pkmn% will appear more often. They may have their hidden ability, be shiny or have higher IV stats than usual!";
     }
 

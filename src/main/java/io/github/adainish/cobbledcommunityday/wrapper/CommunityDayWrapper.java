@@ -12,11 +12,14 @@ import io.github.adainish.cobbledcommunityday.storage.CommunityDayStorage;
 import io.github.adainish.cobbledcommunityday.util.DiscordEmbedBuilder;
 import io.github.adainish.cobbledcommunityday.util.RandomHelper;
 import io.github.adainish.cobbledcommunityday.util.Util;
-import net.dv8tion.jda.api.entities.channel.Channel;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.logging.log4j.Level;
 
 import java.util.*;
 
@@ -38,8 +41,8 @@ public class CommunityDayWrapper
         try {
             for (String s:CobbledCommunityDay.config.blackListedSpecies) {
                 Species species = null;
-                if (PokemonSpecies.INSTANCE.getByName(s) != null)
-                    species = PokemonSpecies.INSTANCE.getByName(s);
+                if (PokemonSpecies.INSTANCE.getByName(s.toLowerCase()) != null)
+                    species = PokemonSpecies.INSTANCE.getByName(s.toLowerCase());
                 if (species == null)
                     continue;
                 blackList.add(species);
@@ -56,7 +59,7 @@ public class CommunityDayWrapper
     }
 
     public void wipeNonActiveEmotes() {
-        TextChannel channel = CobbledCommunityDay.bot.api.getTextChannelById(CobbledCommunityDay.config.channelID);
+        TextChannel channel = CobbledCommunityDay.bot.jda.getTextChannelById(CobbledCommunityDay.config.channelID);
         if (channel == null)
             return;
 
@@ -69,7 +72,7 @@ public class CommunityDayWrapper
                     if (!emoji.getName().contains("communityday_"))
                         continue;
                     if (!isValidEmoji(emoji.getName())) {
-                        emoji.delete();
+                        emoji.delete().submit();
                     }
             }
         } catch (NullPointerException e)
@@ -107,7 +110,11 @@ public class CommunityDayWrapper
             selected = RandomHelper.getRandomElementFromCollection(possibleCommunityPokemon);
         selectedCommunityPokemon = selected;
         DiscordEmbedBuilder.sendBotMessageToChannel(channelID, "Community Day Voting has closed", "The Selected winner is:");
-        DiscordEmbedBuilder.sendPokemonEmbedToChannel(channelID, "Community Day Winner", "%pokemon% with %votes% votes".replace("%pokemon%", selectedCommunityPokemon.getPokemonName()).replace("%votes%", String.valueOf(selectedCommunityPokemon.getVotes())), selectedCommunityPokemon);
+        MessageCreateAction messageCreateAction = DiscordEmbedBuilder.sendPokemonEmbedToChannel(channelID, "Community Day Winner", "%pokemon% with %votes% votes".replace("%pokemon%", selectedCommunityPokemon.getPokemonName()).replace("%votes%", String.valueOf(selectedCommunityPokemon.getVotes())), selectedCommunityPokemon);
+        if (messageCreateAction != null)
+        {
+            messageCreateAction.submit();
+        }
         DiscordEmbedBuilder.sendBotMessageToChannel(channelID, "The Community Day will start in: ", "%date%".replace("%date%", timeLeftInHoursMinutesFromString(daysUntil)));
     }
 
@@ -253,11 +260,19 @@ public class CommunityDayWrapper
             this.voteUntil = System.currentTimeMillis() + (votingTimeMinutes() * Util.MINUTE_IN_MILLIS);
             this.daysUntil = System.currentTimeMillis() + (daysUntil() * Util.DAY_IN_MILLIS);
             this.waitingDays = System.currentTimeMillis() + (waitingDays() * Util.DAY_IN_MILLIS);
-            TextChannel channel = null;
-            if (CobbledCommunityDay.bot.api.getTextChannelById(channelID) != null)
-                channel = CobbledCommunityDay.bot.api.getTextChannelById(channelID);
-            if (channel == null)
+            Guild guild = CobbledCommunityDay.bot.getDesiredChannelGuild();
+            if (guild == null)
+            {
+                CobbledCommunityDay.getLog().error("Unable to return the configured Discord Guild to work with!");
                 return;
+            }
+            TextChannel channel = guild.getTextChannelById(channelID);
+
+            if (channel == null) {
+                CobbledCommunityDay.getLog().log(Level.WARN,"A channel returned as non existent while attempting to send out a message");
+                return;
+            }
+
             for (CommunityPokemon p:possibleCommunityPokemon) {
                 if (p.getEmojiName() == null || p.getEmojiName().isEmpty())
                     continue;
@@ -268,10 +283,14 @@ public class CommunityDayWrapper
             for (CommunityPokemon p:possibleCommunityPokemon) {
                 if (p.getEmojiName() == null || p.getEmojiName().isEmpty())
                     continue;
-                DiscordEmbedBuilder.sendPokemonEmbedToChannel(channelID, "Community Day Option", p.getPokemonName(), p);
-                if (getCustomEmoji(p.getEmojiName()) != null) {
-                    CustomEmoji emoji = getCustomEmoji(p.getEmojiName());
-                    channel.addReactionById(channel.getLatestMessageId(), emoji);
+                MessageCreateAction messageCreateAction = DiscordEmbedBuilder.sendPokemonEmbedToChannel(channelID, "Community Day Option", p.getPokemonName(), p);
+                if (messageCreateAction != null)
+                {
+                    if (getCustomEmoji(p.getEmojiName()) != null) {
+                        CustomEmoji emoji = getCustomEmoji(p.getEmojiName());
+                        Message message = messageCreateAction.submit().get();
+                        message.addReaction(emoji).submit();
+                    }
                 }
             }
         } catch (Exception e)
@@ -282,9 +301,12 @@ public class CommunityDayWrapper
     }
 
     public CustomEmoji getCustomEmoji(String name) {
-        for (RichCustomEmoji customEmoji:CobbledCommunityDay.bot.api.getEmojis()) {
-            if (customEmoji.getName().equalsIgnoreCase(name))
-                return customEmoji;
+        Guild guild = CobbledCommunityDay.bot.getDesiredChannelGuild();
+        if (guild != null) {
+            for (RichCustomEmoji emoji:guild.getEmojis()) {
+                if (emoji.getName().equals(name))
+                    return emoji;
+            }
         }
         return null;
     }

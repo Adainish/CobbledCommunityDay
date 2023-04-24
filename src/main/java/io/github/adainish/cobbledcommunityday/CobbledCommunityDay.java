@@ -30,6 +30,7 @@ import java.io.File;
 @Mod(CobbledCommunityDay.MODID)
 public class CobbledCommunityDay {
 
+    public static CobbledCommunityDay instance;
     // Define mod id in a common place for everything to reference
     public static final String MODID = "cobbledcommunityday";
     public static final String MOD_NAME = "CommunityDay";
@@ -52,6 +53,7 @@ public class CobbledCommunityDay {
     public static EventSubscriptions subscriptions;
 
     public CobbledCommunityDay() {
+        instance = this;
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         // Register the commonSetup method for modloading
@@ -113,10 +115,7 @@ public class CobbledCommunityDay {
         server = ServerLifecycleHooks.getCurrentServer();
         initConfigs();
         if (loginBot()) {
-            setOrCreateCommunityDay();
-            //register spawn listener
-            subscriptions = new EventSubscriptions();
-            startTasks();
+            log.warn("Bot creation appeared successfull, awaiting JDA initialisation");
         } else {
             log.warn("Could not log into the community bot, community day will not be active");
         }
@@ -124,13 +123,13 @@ public class CobbledCommunityDay {
 
     public void startTasks()
     {
-
+        log.warn("Starting tasks for Community Day");
         AsyncTask.Builder builder = new AsyncTask.Builder();
         AsyncTask announcementRunnableTask = builder.withInfiniteIterations().withInterval(20)
                 .withRunnable(new AnnouncementCheck())
                 .build();
         announcementRunnableTask.start();
-        AsyncTask broadCastTask = builder.withInfiniteIterations().withInterval(20)
+        AsyncTask broadCastTask = builder.withInfiniteIterations().withInterval( (20 * 60 ) * 30)
                 .withRunnable(new BroadcastTask())
                 .build();
         broadCastTask.start();
@@ -142,12 +141,6 @@ public class CobbledCommunityDay {
                 .withRunnable(new VotingCheck())
                 .build();
         votingRunnableTask.start();
-    }
-
-    @SubscribeEvent
-    public void onServerShutDown(ServerStartedEvent event)
-    {
-        logoutBot();
     }
 
 
