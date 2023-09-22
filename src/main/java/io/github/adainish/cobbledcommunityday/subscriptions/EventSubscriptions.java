@@ -38,8 +38,7 @@ public class EventSubscriptions
                             entity.getPokemon().setShiny(true);
                         }
                         if (wrapper.getRandomChance() <= wrapper.getHARate()) {
-//                            if (!entity.getPokemon().getForm().getAbilities().isHiddenAbility(entity.getPokemon().getAbility()))
-//                                entity.getPokemon().setAbility(wrapper.getHiddenAbility(entity.getPokemon()));
+                            //Set HA once implemented by Cobblemon
                         }
                         int buffPercent = wrapper.getIVSBuff();
                         double pokemonPercent = CobbledCommunityDay.wrapper.getPercentage(1, newPokemon);
@@ -59,16 +58,8 @@ public class EventSubscriptions
                                 newPokemon.setShiny(true);
                             }
                             if (wrapper.getRandomChance() <= wrapper.getHARate()) {
-//                                if (!newPokemon.getForm().getAbilities().isHiddenAbility(newPokemon.getAbility()))
-//                                    newPokemon.setAbility(wrapper.getHiddenAbility(newPokemon));
+                                //Set HA once implemented by Cobblemon
                             }
-//                            Entity cause = event.action.spawnLocation.cause;
-//                            PlayerEntity playerEntity = entity.world.getClosestPlayer(cause.getPosition().getX(), cause.getPosition().getY(), cause.getPosition().getZ(), 100, true);
-//                            if (playerEntity == null) {
-//                                return;
-//                            }
-//                            PixelmonEntity pixelmonEntity = newPokemon.getOrCreatePixelmon(playerEntity.world, playerEntity.getPosX() + RandomHelper.getRandomNumberBetween(6, 20), playerEntity.getPosY() , playerEntity.getPosZ() + RandomHelper.getRandomNumberBetween(6, 20));
-//                            newPokemon.getOrSpawnPixelmon(pixelmonEntity);
                         }
                     }
             } catch (Exception e)
