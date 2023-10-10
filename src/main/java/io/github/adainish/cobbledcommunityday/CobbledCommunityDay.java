@@ -34,7 +34,7 @@ public class CobbledCommunityDay {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "cobbledcommunityday";
     public static final String MOD_NAME = "CommunityDay";
-    public static final String VERSION = "1.0.0-Beta";
+    public static final String VERSION = "1.1.0-Beta";
     public static final String AUTHORS = "Winglet";
     public static final String YEAR = "2023";
     private static final Logger log = LogManager.getLogger(MOD_NAME);

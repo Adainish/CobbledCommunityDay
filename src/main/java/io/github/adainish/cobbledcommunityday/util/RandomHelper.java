@@ -1,7 +1,7 @@
 package io.github.adainish.cobbledcommunityday.util;
 
 import com.google.common.collect.Sets;
-import com.mojang.math.Vector3d;
+
 
 import java.awt.*;
 import java.util.*;
@@ -158,16 +158,6 @@ public class RandomHelper
 
     public static Color getRandomHighSaturationColor() {
         return Color.getHSBColor(rand.nextFloat() * 360.0F, 1.0F, 1.0F);
-    }
-
-    public static Vector3d nextSpherePoint(double radius) {
-        double theta = rand.nextDouble() * 2.0 * Math.PI;
-        double phi = (rand.nextDouble() - 0.5) * Math.PI;
-        double rad = rand.nextDouble() * radius;
-        double x = rad * Math.cos(theta) * Math.cos(phi);
-        double y = rad * Math.sin(phi);
-        double z = rad * Math.sin(theta) * Math.cos(phi);
-        return new Vector3d(x, y, z);
     }
 
     public static <T> T getRandomElementFromCollection(Collection<T> collection) {
