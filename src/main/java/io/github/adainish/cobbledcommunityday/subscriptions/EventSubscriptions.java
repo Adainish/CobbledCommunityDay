@@ -21,13 +21,13 @@ public class EventSubscriptions
 
     public void subsScribeToSpawnEvent()
     {
-        CobblemonEvents.POKEMON_FAINTED.subscribe(Priority.NORMAL, event -> {
+        CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.NORMAL, event -> {
             try {
                 if (!CobbledCommunityDay.wrapper.isCommunityDay()) {
                     return Unit.INSTANCE;
                 }
                     CommunityDayWrapper wrapper = CobbledCommunityDay.wrapper;
-                    PokemonEntity entity = event.getPokemon().getEntity();
+                    PokemonEntity entity = event.getEntity();
                     Species species = entity.getPokemon().getSpecies();
                     if (wrapper.getSelectedCommunityPokemon() == null) {
                         wrapper.selectWinnerNoAnnouncement();

@@ -34,4 +34,11 @@ public class Util
         sender.sendSystemMessage(Component.literal((message).replaceAll("&([0-9a-fk-or])", "\u00a7$1")));
     }
 
+    public static String getTimeString(long l) {
+        long days = l / DAY_IN_MILLIS;
+        long hours = (l % DAY_IN_MILLIS) / HOUR_IN_MILLIS;
+        long minutes = (l % HOUR_IN_MILLIS) / MINUTE_IN_MILLIS;
+        long seconds = (l % MINUTE_IN_MILLIS) / SECOND_IN_MILLIS;
+        return days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+    }
 }

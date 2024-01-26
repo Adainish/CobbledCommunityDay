@@ -189,7 +189,7 @@ public class CommunityDayWrapper
                     continue;
                 }
             }
-            total += pokemon.getIvs().get(st);
+            total += pokemon.getIvs().getOrDefault(st);
         }
 
         double percentage = (double)total / 186.0 * 100.0;
@@ -205,9 +205,9 @@ public class CommunityDayWrapper
             if (increase >= buffPercent)
                 break;
             Stats statsType = getRandomStatType();
-            if (pokemon.getIvs().get(statsType) >= 31)
+            if (pokemon.getIvs().getOrDefault(statsType) >= 31)
                 continue;
-            pokemon.getIvs().set(statsType, pokemon.getIvs().get(statsType) + 1);
+            pokemon.getIvs().set(statsType, pokemon.getIvs().getOrDefault(statsType) + 1);
             increase++;
         }
         return pokemon;
@@ -348,6 +348,11 @@ public class CommunityDayWrapper
     }
     public CommunityPokemon getSelectedCommunityPokemon() {
         return selectedCommunityPokemon;
+    }
+
+    // getter for possible community pokemon
+    public List<CommunityPokemon> getPossibleCommunityPokemon() {
+        return possibleCommunityPokemon;
     }
 
     public void setSelectedCommunityPokemon(CommunityPokemon selectedCommunityPokemon) {
