@@ -1,5 +1,7 @@
 package io.github.adainish.cobbledcommunityday;
 
+import com.mojang.brigadier.CommandDispatcher;
+import io.github.adainish.cobbledcommunityday.cmd.Command;
 import io.github.adainish.cobbledcommunityday.config.Config;
 import io.github.adainish.cobbledcommunityday.obj.Bot;
 import io.github.adainish.cobbledcommunityday.scheduler.AsyncTask;
@@ -10,8 +12,11 @@ import io.github.adainish.cobbledcommunityday.task.BroadcastTask;
 import io.github.adainish.cobbledcommunityday.task.CreationCheck;
 import io.github.adainish.cobbledcommunityday.task.VotingCheck;
 import io.github.adainish.cobbledcommunityday.wrapper.CommunityDayWrapper;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -121,6 +126,12 @@ public class CobbledCommunityDay {
         }
     }
 
+    @SubscribeEvent
+    public void onCommandRegister(RegisterCommandsEvent event) {
+        log.warn("Registering commands for Community Day");
+        event.getDispatcher().register(Command.getCommand());
+    }
+
     public void startTasks()
     {
         log.warn("Starting tasks for Community Day");
@@ -192,5 +203,17 @@ public class CobbledCommunityDay {
     public void initConfigs() {
         Config.writeConfig();
         config = Config.getConfig();
+    }
+
+    public void reload()
+    {
+        initDirs();
+        initConfigs();
+        if (bot != null)
+            bot.logoutBot();
+        if (loginBot())
+            log.warn("Bot reloaded successfully");
+        else
+            log.warn("Bot failed to reload");
     }
 }

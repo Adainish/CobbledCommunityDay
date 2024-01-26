@@ -36,6 +36,9 @@ public class ReactionListener extends ListenerAdapter
     @Override
     public void onMessageReactionAdd(@Nonnull MessageReactionAddEvent event) {
         try {
+            if (event.getUser() == null)
+                return;
+
             if (event.getUser().isBot() || event.getUser().isSystem())
                 return;
 
@@ -44,11 +47,11 @@ public class ReactionListener extends ListenerAdapter
                 return;
 
             CustomEmoji emoji = event.getReaction().getEmoji().asCustom();
-
-            if (emoji.getName() == null) {
-                CobbledCommunityDay.getLog().error("Something went horribly wrong! The Emoji Data for a Community Day Pokemon was detected to be null, or non existent! This indicates a storage issue! Please contact the dev and check the storage file to verify!");
-                return;
-            }
+//
+//            if (emoji.getName() == null) {
+//                CobbledCommunityDay.getLog().error("Something went horribly wrong! The Emoji Data for a Community Day Pokemon was detected to be null, or non existent! This indicates a storage issue! Please contact the dev and check the storage file to verify!");
+//                return;
+//            }
 
             if (communityDay.isValidEmoji(emoji.getName())) {
                 DiscordAccount discordAccount = Util.getDiscordAccount(event.getUserIdLong());
@@ -58,7 +61,7 @@ public class ReactionListener extends ListenerAdapter
                 if (discordAccount.hasVoted()) {
                     DiscordAccount finalDiscordAccount = discordAccount;
                     event.getUser().openPrivateChannel().queue(privateChannel -> {
-                       privateChannel.sendMessage("You've already voted for this community day, your vote was cast for: " + finalDiscordAccount.getSelectedPokemon());
+                        privateChannel.sendMessage("You've already voted for this community day, your vote was cast for: " + finalDiscordAccount.getSelectedPokemon());
                     });
                     return;
                 }
@@ -72,7 +75,7 @@ public class ReactionListener extends ListenerAdapter
                 });
             }
 
-        } catch (Exception e)
+        } catch (Exception ignored)
         {
 
         }

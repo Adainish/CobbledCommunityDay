@@ -10,6 +10,8 @@ import io.github.adainish.cobbledcommunityday.CobbledCommunityDay;
 import io.github.adainish.cobbledcommunityday.wrapper.CommunityDayWrapper;
 import kotlin.Unit;
 
+import java.util.stream.IntStream;
+
 public class EventSubscriptions
 {
     public EventSubscriptions()
@@ -19,13 +21,13 @@ public class EventSubscriptions
 
     public void subsScribeToSpawnEvent()
     {
-        CobblemonEvents.POKEMON_FAINTED.subscribe(Priority.NORMAL, event -> {
+        CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.NORMAL, event -> {
             try {
                 if (!CobbledCommunityDay.wrapper.isCommunityDay()) {
                     return Unit.INSTANCE;
                 }
                     CommunityDayWrapper wrapper = CobbledCommunityDay.wrapper;
-                    PokemonEntity entity = event.getPokemon().getEntity();
+                    PokemonEntity entity = event.getEntity();
                     Species species = entity.getPokemon().getSpecies();
                     if (wrapper.getSelectedCommunityPokemon() == null) {
                         wrapper.selectWinnerNoAnnouncement();
@@ -43,14 +45,7 @@ public class EventSubscriptions
                         int buffPercent = wrapper.getIVSBuff();
                         double pokemonPercent = CobbledCommunityDay.wrapper.getPercentage(1, newPokemon);
                         double leftOver = 100 - pokemonPercent;
-                        for (int i = 0; i < leftOver; i++) {
-                            if (i >= buffPercent)
-                                break;
-                            Stats statsType = wrapper.getRandomStatType();
-                            if (entity.getPokemon().getIvs().get(statsType) >= 31)
-                                continue;
-                            entity.getPokemon().getIvs().set(statsType, entity.getPokemon().getIvs().get(statsType) + 1);
-                        }
+                        IntStream.iterate(0, i -> i < leftOver, i -> i + 1).takeWhile(i -> i < buffPercent).mapToObj(i -> wrapper.getRandomStatType()).filter(statsType -> entity.getPokemon().getIvs().getOrDefault(statsType) < 31).forEachOrdered(statsType -> entity.getPokemon().getIvs().set(statsType, entity.getPokemon().getIvs().getOrDefault(statsType) + 1));
                     }
                     else {
                         if (wrapper.getRandomChance() <= wrapper.getSpawnRate()) {

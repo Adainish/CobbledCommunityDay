@@ -2,8 +2,13 @@ buildscript {
     repositories {
         jcenter()
     }
+    repositories {
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
+        }
+    }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:6.1.0'
+        classpath("gradle.plugin.com.github.johnrengelman:shadow:7.1.2")
     }
 }
 
@@ -127,7 +132,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 repositories {
     // Put repositories for dependencies here
     // ForgeGradle automatically adds the Forge maven and Maven Central for you
-
+    mavenCentral()
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
     // flatDir {
     //     dir 'libs'
@@ -140,10 +145,12 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft 'net.minecraftforge:forge:1.20.1-47.1.8'
     implementation fileTree(dir: 'libs', include: '*.jar')
-    implementation("net.dv8tion:JDA:5.0.0-beta.13") {
-        exclude module: 'opus-java'
-    }
+//
+//    implementation("net.dv8tion:JDA:5.0.0-beta.20") {
+//        exclude module: 'opus-java'
+//    }
     shadow group: 'net.dv8tion', name: 'JDA', version:'5.0.0-beta.13'
+
     // Real mod deobf dependency examples - these get remapped to your current mappings
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api") // Adds JEI API as a compile dependency
     // runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}") // Adds the full JEI mod as a runtime dependency
@@ -172,11 +179,6 @@ jar {
     }
 }
 
-jar.finalizedBy('reobfJar')
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
-}
 configurations {
     provided
     compile.extendsFrom provided
@@ -188,6 +190,7 @@ shadowJar {
     exclude 'org/slf4j/**'
     exclude 'org/jetbrains/**'
     exclude 'com/sun/**'
+    exclude 'com/google/**'
 //    exclude 'com/**'
 //    exclude 'natives/**'
 //    exclude 'gnu/**'
@@ -196,12 +199,20 @@ shadowJar {
 //    exclude 'tomp2p/**'
     exclude 'kotlin/**'
 
+
+    relocate('net.dv8tion', 'io.github.adainish.cobbledcommunityday.jda')
+
     dependsOn('reobfJar')
     archiveName = rootProject.name + "-" + rootProject.version + "-shade.jar"
 }
+
 reobf {
     shadowJar {}
 }
 
 
 jar.finalizedBy('reobfJar')
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
