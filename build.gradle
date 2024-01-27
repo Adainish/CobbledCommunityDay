@@ -198,9 +198,18 @@ shadowJar {
 //    exclude 'okio/**'
 //    exclude 'tomp2p/**'
     exclude 'kotlin/**'
+    exclude 'natives/**'
 
 
-    relocate('net.dv8tion', 'io.github.adainish.cobbledcommunityday.jda')
+    relocate('net.dv8tion', 'io.github.adainish.cobbledcommunityday.shaded.jda')
+    relocate('tomp2p', 'io.github.adainish.cobbledcommunityday.shaded.tomp2p')
+    relocate('club.minnced', 'io.github.adainish.cobbledcommunityday.shaded.minnced')
+    relocate('com.neovisionaries', 'io.github.adainish.cobbledcommunityday.shaded.neovisionaries')
+    relocate('com.iwebpp', 'io.github.adainish.cobbledcommunityday.shaded.iwebpp')
+    relocate('com.fasterxml', 'io.github.adainish.cobbledcommunityday.shaded.fasterxml')
+    relocate('okio', 'io.github.adainish.cobbledcommunityday.shaded.okio')
+    relocate('gnu', 'io.github.adainish.cobbledcommunityday.shaded.gnu')
+    relocate('okhttp3', 'io.github.adainish.cobbledcommunityday.shaded.okhttp3')
 
     dependsOn('reobfJar')
     archiveName = rootProject.name + "-" + rootProject.version + "-shade.jar"

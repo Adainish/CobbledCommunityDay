@@ -103,9 +103,9 @@ public class DiscordEmbedBuilder
         builder.addField("Pokemon: ", pokemon.getSpecies().getName(), true);
 
         if (pokemon.getShiny()) {
-            link = "https://play.pokemonshowdown.com/sprites/xyani-shiny/" + pokemon.getSpecies().getName().toLowerCase() + ".gif";
+            link = "https://play.pokemonshowdown.com/sprites/ani-shiny/" + pokemon.getSpecies().getName().toLowerCase() + ".gif";
         } else {
-            link = "https://play.pokemonshowdown.com/sprites/xyani/" + pokemon.getSpecies().getName().toLowerCase() + ".gif";
+            link = "https://play.pokemonshowdown.com/sprites/ani/" + pokemon.getSpecies().getName().toLowerCase() + ".gif";
         }
 
         builder.setImage(link);
