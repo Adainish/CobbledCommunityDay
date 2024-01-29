@@ -1,14 +1,18 @@
 package io.github.adainish.cobbledcommunityday.obj;
 
+import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
+import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import io.github.adainish.cobbledcommunityday.CobbledCommunityDay;
 import io.github.adainish.cobbledcommunityday.storage.EmojiStorage;
+import io.github.adainish.cobbledcommunityday.util.RandomHelper;
 import net.dv8tion.jda.api.entities.Icon;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.requests.restaction.AuditableRestAction;
+import net.minecraft.world.level.Level;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -28,12 +32,23 @@ public class CommunityPokemon
         scrapeCustomEmote();
     }
 
-    public Pokemon getPokemon() {
-        Species species = null;
+    public PokemonProperties getPokemonProperties() {
+        PokemonProperties properties = new PokemonProperties();
+        // set level between range of 10 and 40
+        int randomLvL = RandomHelper.getRandomNumberBetween(10, 40);
+        properties.setLevel(randomLvL);
         if (PokemonSpecies.INSTANCE.getByName(pokemonName.toLowerCase()) != null)
-            species = PokemonSpecies.INSTANCE.getByName(pokemonName.toLowerCase());
-        else species = PokemonSpecies.INSTANCE.getByName("magikarp");
-        return species.create(100);
+            properties.setSpecies(pokemonName.toLowerCase());
+        else properties.setSpecies("magikarp");
+        return properties;
+    }
+
+    public PokemonEntity getAndCreatePokemonEntity(Level level) {
+        return getPokemonProperties().createEntity(level);
+    }
+
+    public Pokemon getPokemon() {
+        return getPokemonProperties().create();
     }
 
     public void scrapeCustomEmote() {
@@ -44,9 +59,9 @@ public class CommunityPokemon
         Pokemon pokemon = getPokemon();
         String link;
         if (pokemon.getShiny()) {
-                link = "https://play.pokemonshowdown.com/sprites/xyani-shiny/" + pokemon.getSpecies().getName().toLowerCase() + ".gif";
+                link = "https://play.pokemonshowdown.com/sprites/ani-shiny/" + pokemon.getSpecies().getName().toLowerCase() + ".gif";
             } else {
-                link = "https://play.pokemonshowdown.com/sprites/xyani/" + pokemon.getSpecies().getName().toLowerCase() + ".gif";
+                link = "https://play.pokemonshowdown.com/sprites/ani/" + pokemon.getSpecies().getName().toLowerCase() + ".gif";
             }
             String name = "communityday_" + pokemon.getSpecies().getName();
             URL url = null;

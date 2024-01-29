@@ -2,6 +2,7 @@ package io.github.adainish.cobbledcommunityday.subscriptions;
 
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
+import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
@@ -34,28 +35,35 @@ public class EventSubscriptions
                         wrapper.save();
                         return Unit.INSTANCE;
                     }
-                    Pokemon newPokemon = wrapper.getSelectedCommunityPokemon().getPokemon();
+
                     if (wrapper.getSelectedCommunityPokemon().getPokemon().getSpecies().equals(species)) {
+                        Pokemon newPokemon = wrapper.getSelectedCommunityPokemon().getPokemon();
                         if (wrapper.getRandomChance() <= wrapper.getShinyRate()) {
                             entity.getPokemon().setShiny(true);
                         }
                         if (wrapper.getRandomChance() <= wrapper.getHARate()) {
                             //Set HA once implemented by Cobblemon
                         }
+
                         int buffPercent = wrapper.getIVSBuff();
                         double pokemonPercent = CobbledCommunityDay.wrapper.getPercentage(1, newPokemon);
                         double leftOver = 100 - pokemonPercent;
                         IntStream.iterate(0, i -> i < leftOver, i -> i + 1).takeWhile(i -> i < buffPercent).mapToObj(i -> wrapper.getRandomStatType()).filter(statsType -> entity.getPokemon().getIvs().getOrDefault(statsType) < 31).forEachOrdered(statsType -> entity.getPokemon().getIvs().set(statsType, entity.getPokemon().getIvs().getOrDefault(statsType) + 1));
                     }
                     else {
+                        PokemonProperties properties = wrapper.getSelectedCommunityPokemon().getPokemonProperties();
                         if (wrapper.getRandomChance() <= wrapper.getSpawnRate()) {
                             if (wrapper.getRandomChance() <= wrapper.getShinyRate()) {
-                                newPokemon.setShiny(true);
+                                properties.setShiny(true);
                             }
                             if (wrapper.getRandomChance() <= wrapper.getHARate()) {
                                 //Set HA once implemented by Cobblemon
                             }
                         }
+
+                        PokemonEntity pokemonEntity = properties.createEntity(entity.level());
+                        entity.level().addFreshEntity(pokemonEntity);
+                        pokemonEntity.setPos(entity.getX(), entity.getY(), entity.getZ());
                     }
             } catch (Exception e)
             {
