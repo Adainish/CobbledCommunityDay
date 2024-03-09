@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+
 
 public class ReactionListener extends ListenerAdapter
 {
@@ -34,7 +34,7 @@ public class ReactionListener extends ListenerAdapter
     }
 
     @Override
-    public void onMessageReactionAdd(@Nonnull MessageReactionAddEvent event) {
+    public void onMessageReactionAdd(MessageReactionAddEvent event) {
         try {
             if (event.getUser() == null)
                 return;

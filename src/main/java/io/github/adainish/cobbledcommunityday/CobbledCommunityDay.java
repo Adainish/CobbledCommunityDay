@@ -1,10 +1,11 @@
 package io.github.adainish.cobbledcommunityday;
 
-import com.mojang.brigadier.CommandDispatcher;
+import ca.landonjw.gooeylibs2.api.tasks.Task;
+import com.cobblemon.mod.common.api.Priority;
+import com.cobblemon.mod.common.platform.events.PlatformEvents;
 import io.github.adainish.cobbledcommunityday.cmd.Command;
 import io.github.adainish.cobbledcommunityday.config.Config;
 import io.github.adainish.cobbledcommunityday.obj.Bot;
-import io.github.adainish.cobbledcommunityday.scheduler.AsyncTask;
 import io.github.adainish.cobbledcommunityday.storage.CommunityDayStorage;
 import io.github.adainish.cobbledcommunityday.subscriptions.EventSubscriptions;
 import io.github.adainish.cobbledcommunityday.task.AnnouncementCheck;
@@ -12,28 +13,19 @@ import io.github.adainish.cobbledcommunityday.task.BroadcastTask;
 import io.github.adainish.cobbledcommunityday.task.CreationCheck;
 import io.github.adainish.cobbledcommunityday.task.VotingCheck;
 import io.github.adainish.cobbledcommunityday.wrapper.CommunityDayWrapper;
-import net.minecraft.commands.CommandSource;
-import net.minecraft.commands.Commands;
+import kotlin.Unit;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLConfig;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod(CobbledCommunityDay.MODID)
-public class CobbledCommunityDay {
+
+public class CobbledCommunityDay implements ModInitializer {
 
     public static CobbledCommunityDay instance;
     // Define mod id in a common place for everything to reference
@@ -59,12 +51,6 @@ public class CobbledCommunityDay {
 
     public CobbledCommunityDay() {
         instance = this;
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
-        // Register the commonSetup method for modloading
-        modEventBus.addListener(this::commonSetup);
-        // Register ourselves for server and other game events we are interested in
-        MinecraftForge.EVENT_BUS.register(this);
     }
 
     public static org.apache.logging.log4j.Logger getLog() {
@@ -103,8 +89,12 @@ public class CobbledCommunityDay {
         CobbledCommunityDay.emojiStorage = emojiStorage;
     }
 
+    @Override
+    public void onInitialize() {
+        commonSetup();
+    }
 
-    private void commonSetup(final FMLCommonSetupEvent event) {
+    private void commonSetup() {
         log.info("Booting up %n by %authors %v %y"
                 .replace("%n", MOD_NAME)
                 .replace("%authors", AUTHORS)
@@ -112,46 +102,44 @@ public class CobbledCommunityDay {
                 .replace("%y", YEAR)
         );
         initDirs();
-    }
 
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarted(ServerStartedEvent event) {
-        server = ServerLifecycleHooks.getCurrentServer();
-        initConfigs();
-        if (loginBot()) {
-            log.warn("Bot creation appeared successfull, awaiting JDA initialisation");
-        } else {
-            log.warn("Could not log into the community bot, community day will not be active");
-        }
-    }
+        PlatformEvents.SERVER_STARTED.subscribe(Priority.NORMAL, t -> {
+            setServer(t.getServer());
+            //load data from config
+            initConfigs();
+            if (loginBot()) {
+                log.warn("Bot creation appeared successfull, awaiting JDA initialisation");
+            } else {
+                log.warn("Could not log into the community bot, community day will not be active");
+            }
 
-    @SubscribeEvent
-    public void onCommandRegister(RegisterCommandsEvent event) {
-        log.warn("Registering commands for Community Day");
-        event.getDispatcher().register(Command.getCommand());
+            return Unit.INSTANCE;
+        });
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryaccess, environment) -> {
+            log.warn("Registering commands for Community Day");
+            dispatcher.register(Command.getCommand());
+        });
     }
 
     public void startTasks()
     {
         log.warn("Starting tasks for Community Day");
-        AsyncTask.Builder builder = new AsyncTask.Builder();
-        AsyncTask announcementRunnableTask = builder.withInfiniteIterations().withInterval(20)
-                .withRunnable(new AnnouncementCheck())
+
+        Task announcementRunnableTask = Task.builder().infinite().interval(20)
+                .execute(new AnnouncementCheck())
                 .build();
-        announcementRunnableTask.start();
-        AsyncTask broadCastTask = builder.withInfiniteIterations().withInterval( (20 * 60 ) * 30)
-                .withRunnable(new BroadcastTask())
+
+        Task broadCastTask = Task.builder().infinite().interval(20)
+                .execute(new BroadcastTask())
                 .build();
-        broadCastTask.start();
-        AsyncTask creationRunnableTask = builder.withInfiniteIterations().withInterval(20)
-                .withRunnable(new CreationCheck())
+
+        Task creationRunnableTask = Task.builder().infinite().interval(20)
+                .execute(new CreationCheck())
                 .build();
-        creationRunnableTask.start();
-        AsyncTask votingRunnableTask = builder.withInfiniteIterations().withInterval(20)
-                .withRunnable(new VotingCheck())
+        Task votingRunnableTask = Task.builder().infinite().interval(20)
+                .execute(new VotingCheck())
                 .build();
-        votingRunnableTask.start();
+
     }
 
 
@@ -192,7 +180,7 @@ public class CobbledCommunityDay {
 
 
     public void initDirs() {
-        setConfigDir(new File(FMLPaths.GAMEDIR.get().resolve(FMLConfig.defaultConfigPath()) + "/CommunityDay/"));
+        setConfigDir(new File(FabricLoader.getInstance().getConfigDir() + "/CommunityDay/"));
         getConfigDir().mkdir();
         setStorage(new File(getConfigDir(), "/storage/"));
         getStorage().mkdirs();
@@ -216,4 +204,6 @@ public class CobbledCommunityDay {
         else
             log.warn("Bot failed to reload");
     }
+
+
 }

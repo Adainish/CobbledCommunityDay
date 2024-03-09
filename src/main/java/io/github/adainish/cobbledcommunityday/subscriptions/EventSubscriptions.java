@@ -10,6 +10,7 @@ import com.cobblemon.mod.common.pokemon.Species;
 import io.github.adainish.cobbledcommunityday.CobbledCommunityDay;
 import io.github.adainish.cobbledcommunityday.wrapper.CommunityDayWrapper;
 import kotlin.Unit;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.stream.IntStream;
 
@@ -60,9 +61,9 @@ public class EventSubscriptions
                                 //Set HA once implemented by Cobblemon
                             }
                         }
-
-                        PokemonEntity pokemonEntity = properties.createEntity(entity.level());
-                        entity.level().addFreshEntity(pokemonEntity);
+                        ServerLevel level = (ServerLevel) entity.level();
+                        PokemonEntity pokemonEntity = properties.createEntity(level);
+                        level.addFreshEntity(pokemonEntity);
                         pokemonEntity.setPos(entity.getX(), entity.getY(), entity.getZ());
                     }
             } catch (Exception e)
